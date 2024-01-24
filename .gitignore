@@ -1,0 +1,25 @@
+# Node Modules
+node_modules/
+
+# Environment Variables
+.env
+
+# Build Output
+build/
+dist/
+public/
+
+# User-Specific Files
+.vscode/
+.idea/
+
+# Log Files
+logs/
+
+# Temporary Files
+.tmp/
+.cache/
+
+# Dependency Lock Files
+package-lock.json
+yarn.lock
