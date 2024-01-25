@@ -1,12 +1,15 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import Logo from '../assets/logo.svg'
+import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { registerRoute } from '../utils/APIRoutes';
 
 export default function Register() {
-
+  
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     username: "",
     email: "",
@@ -34,80 +37,99 @@ export default function Register() {
         "Password and confirm password should be same.");
       return false;
     }
-    else if (password.length < 8) {
-      toast.error(
-        "Password should be equal or greater than 8 characters.");
+    else if (username.length < 3) {
+      toast.error("Username should be greater than 3 characters.");
       return false;
     }
     else if (email === "") {
       toast.error("Email is required.");
       return false;
     }
-    else if (username.length < 3) {
-      toast.error(
-        "Username should be greater than 3 characters.");
+    else if (password.length < 8) {
+      toast.error("Password should be equal or greater than 8 characters.");
       return false;
     }
-
+    
     return true;
   };
 
 
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleValidation();
+
+    if (handleValidation()) {
+      const { email, username, password } = values;
+     
+      // registerRoute url defined in assets
+      const { data } = await axios.post(registerRoute, {
+        username,
+        email,
+        password,
+      });
+      if (data.status === false) {
+        toast.error(data.msg);
+      }
+      if (data.status === true) {
+        localStorage.setItem(
+          'chat-user-app',
+          // User data stored in JSON string 
+          JSON.stringify(data.user)
+        );
+        navigate("/");
+      }
+      
+    }
+  }
+
+    return (
+      <>
+        <FormContainer>
+          <form action="" onSubmit={(event) => handleSubmit(event)}>
+            <div className="header">
+              <img src={Logo} alt="logo" />
+              <h1>chatter</h1>
+            </div>
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              name="email"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              name="password"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              name="confirmPassword"
+              onChange={(e) => handleChange(e)}
+            />
+            <button type="submit">Create User</button>
+            <span>
+              Already have an account ? <Link to="/login">Login.</Link>
+            </span>
+          </form>
+        </FormContainer>
+        <ToastContainer />
+
+
+      </>
+    )
   }
 
 
-  return (
-    <>
-      <FormContainer>
-        <form action="" onSubmit={(event) => handleSubmit(event)}>
-          <div className="header">
-            <img src={Logo} alt="logo" />
-            <h1>chatter</h1>
-          </div>
-          <input
-            type="text"
-            placeholder="Username"
-            name="username"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            name="email"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            name="password"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            name="confirmPassword"
-            onChange={(e) => handleChange(e)}
-          />
-          <button type="submit">Create User</button>
-          <span>
-            Already have an account ? <Link to="/login">Login.</Link>
-          </span>
-        </form>
-      </FormContainer>
-      <ToastContainer />
-
-
-    </>
-  )
-}
-
-
-const FormContainer = styled.div`
+  const FormContainer = styled.div`
   height: 100vh;
   width: 100vw;
   display: flex;
