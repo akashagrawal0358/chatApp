@@ -5,34 +5,31 @@ import { Buffer } from "buffer";
 import loader from "../assets/loader.gif";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { setAvatarRoute } from "../utils/APIRoutes";
 import { useNavigate } from "react-router-dom";
 
 
-export default function SetAvatar() {
-    const api = `https://api.multiavatar.com/4645646`;
+
+
+
+
+const SetAvatar = () => {
+
+    // Opensource api to generate random avatar 
+    const api = `https://api.multiavatar.com/4645640`;
     const navigate = useNavigate();
+
     const [avatars, setAvatars] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedAvatar, setSelectedAvatar] = useState(undefined);
-    const toastOptions = {
-        position: "bottom-right",
-        autoClose: 8000,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "dark",
-    };
 
-    useEffect(async () => {
-        if (!localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY))
-            navigate("/login");
-    }, []);
-
-    const setProfilePicture = async () => {
+    const setProfilePic = async () => {
         if (selectedAvatar === undefined) {
-            toast.error("Please select an avatar", toastOptions);
-        } else {
+            toast.error("Please select an avatar");
+        } 
+        else {
             const user = await JSON.parse(
-                localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+                localStorage.getItem("chat-app")
             );
 
             const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
@@ -43,41 +40,41 @@ export default function SetAvatar() {
                 user.isAvatarImageSet = true;
                 user.avatarImage = data.image;
                 localStorage.setItem(
-                    process.env.REACT_APP_LOCALHOST_KEY,
+                   "chat-app",
                     JSON.stringify(user)
                 );
                 navigate("/");
             } else {
-                toast.error("Error setting avatar. Please try again.", toastOptions);
+                toast.error("Error setting avatar. Please try again.");
             }
         }
     };
 
-    useEffect(async () => {
-        const data = [];
-        for (let i = 0; i < 4; i++) {
-            const image = await axios.get(
-                `${api}/${Math.round(Math.random() * 1000)}`
-            );
-            const buffer = new Buffer(image.data);
-            data.push(buffer.toString("base64"));
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = [];
+            for (let i = 0; i < 4; i++) {
+                const image = await axios.get(`${api}/${Math.round(Math.random() * 1000)}`);
+
+                const buffer = new Buffer(image.data);
+                data.push(buffer.toString('base64'));
+            }
+            setAvatars(data);
+            setIsLoading(false);
         }
-        setAvatars(data);
-        setIsLoading(false);
+        fetchData();
     }, []);
+
     return (
         <>
-            {isLoading ? (
-                <Container>
-                    <img src={loader} alt="loader" className="loader" />
-                </Container>
-            ) : (
-                <Container>
-                    <div className="title-container">
-                        <h1>Pick an Avatar as your profile picture</h1>
-                    </div>
-                    <div className="avatars">
-                        {avatars.map((avatar, index) => {
+            <Container>
+                <div className="title-container">
+                    <h1>Pick an Avatar as your profile picture</h1>
+                </div>
+                <div className="avatars">
+                    {
+                        avatars.map((avatar, index) => {
+
                             return (
                                 <div
                                     className={`avatar ${selectedAvatar === index ? "selected" : ""
@@ -91,18 +88,19 @@ export default function SetAvatar() {
                                     />
                                 </div>
                             );
-                        })}
-                    </div>
-                    <button onClick={setProfilePicture} className="submit-btn">
-                        Set as Profile Picture
-                    </button>
-                    <ToastContainer />
-                </Container>
-            )}
+                        })
+                    }
+                </div>
+                <button onClick={setProfilePic} className="submit-btn">
+                    Set as Profile Picture
+                </button>
+                <ToastContainer />
+            </Container>
         </>
-    );
+    )
 }
 
+export default SetAvatar
 
 
 const Container = styled.div`
