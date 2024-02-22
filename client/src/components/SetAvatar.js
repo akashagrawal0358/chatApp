@@ -23,24 +23,35 @@ const SetAvatar = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedAvatar, setSelectedAvatar] = useState(undefined);
 
+    useEffect(() => {
+        const checkUser = async () => {
+            if (!localStorage.getItem('chat-user-app')) {
+                navigate("/login");
+            }
+        };
+        checkUser();
+    }, []);
+
     const setProfilePic = async () => {
         if (selectedAvatar === undefined) {
             toast.error("Please select an avatar");
-        } 
+        }
         else {
             const user = await JSON.parse(
-                localStorage.getItem("chat-app")
+                localStorage.getItem("chat-user-app")
             );
 
+            // Making a POST request to set the avatar on the server
             const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
                 image: avatars[selectedAvatar],
             });
 
+            console.log(data);
             if (data.isSet) {
                 user.isAvatarImageSet = true;
                 user.avatarImage = data.image;
                 localStorage.setItem(
-                   "chat-app",
+                    "chat-user-app",
                     JSON.stringify(user)
                 );
                 navigate("/");
@@ -67,35 +78,42 @@ const SetAvatar = () => {
 
     return (
         <>
-            <Container>
-                <div className="title-container">
-                    <h1>Pick an Avatar as your profile picture</h1>
-                </div>
-                <div className="avatars">
-                    {
-                        avatars.map((avatar, index) => {
 
-                            return (
-                                <div
-                                    className={`avatar ${selectedAvatar === index ? "selected" : ""
-                                        }`}
-                                >
-                                    <img
-                                        src={`data:image/svg+xml;base64,${avatar}`}
-                                        alt="avatar"
-                                        key={avatar}
-                                        onClick={() => setSelectedAvatar(index)}
-                                    />
-                                </div>
-                            );
-                        })
-                    }
-                </div>
-                <button onClick={setProfilePic} className="submit-btn">
-                    Set as Profile Picture
-                </button>
-                <ToastContainer />
-            </Container>
+            {
+                isLoading ? (<Container>
+                    <img src={loader} alt="loader" className="loader" />
+                </Container>) : (
+
+                    <Container>
+                        <div className="title-container">
+                            <h1>Pick an Avatar as your profile picture</h1>
+                        </div>
+                        <div className="avatars">
+                            {
+                                avatars.map((avatar, index) => {
+
+                                    return (
+                                        <div className={`avatar ${selectedAvatar === index ? "selected" : ""}`}>
+                                            <img
+                                                src={`data:image/svg+xml;base64,${avatar}`}
+                                                alt="avatar"
+                                                key={avatar}
+                                                onClick={() => setSelectedAvatar(index)}
+                                            />
+                                        </div>
+                                    );
+                                })
+                            }
+                        </div>
+                        <button onClick={setProfilePic} className="submit-btn">
+                            Set as Profile Picture
+                        </button>
+                        <ToastContainer />
+                    </Container>
+
+                )
+
+            }
         </>
     )
 }
