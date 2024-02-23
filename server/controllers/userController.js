@@ -62,8 +62,9 @@ module.exports.login = async (req, res, next) => {
 };
 
 
-module.exports.setAvatar = async (req, res, next) => {
+// --------------------- setAvatar ------------------------------------------------------
 
+module.exports.setAvatar = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const avatarImage = req.body.image;
@@ -72,7 +73,7 @@ module.exports.setAvatar = async (req, res, next) => {
             isAvatarImageSet: true,
             avatarImage
         })
-        
+
         return res.json({
             isSet: userData.isAvatarImageSet,
             image: userData.avatarImage,
@@ -83,3 +84,25 @@ module.exports.setAvatar = async (req, res, next) => {
         next(error);
     }
 }
+
+
+// --------------------- allUsers ------------------------------------------------------
+
+
+module.exports.allUsers = async (req, res, next) => {
+    try {
+        // retrieves a list of users (User.find) whose _id is not equal to the id provided 
+        // in the request parameters ($ne means not equal).
+        // The select method specifies the fields to be included in the result.
+
+        const users = await User.find({ _id: { $ne: req.params.id } }).select([
+            "email",
+            "username",
+            "avatarImage",
+            "_id",
+        ]);
+        return res.json(users);
+    } catch (ex) {
+        next(ex);
+    }
+};
