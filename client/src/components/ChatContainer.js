@@ -2,8 +2,15 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import Logout from "./Logout";
+import ChatInput from "./ChatInput";
+import Messages from "./Messages";
 
 const ChatContainer = ({ currentChat }) => {
+
+    const handleSendMsg = async(msg) => {
+        alert(msg);
+    }
+
     return (
         <Container>
             <div className='chat-header'>
@@ -17,6 +24,8 @@ const ChatContainer = ({ currentChat }) => {
                 </div>
                 <Logout />
             </div>
+            <Messages />
+            <ChatInput handleSendMsg={handleSendMsg} />
 
         </Container >
     )
