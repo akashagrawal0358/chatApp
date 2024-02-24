@@ -3,32 +3,69 @@ import styled from "styled-components";
 import axios from "axios";
 import Logout from "./Logout";
 import ChatInput from "./ChatInput";
-import Messages from "./Messages";
+import { getAllMessagesRoute, sendMsgRoute } from "../utils/APIRoutes";
 
-const ChatContainer = ({ currentChat }) => {
+const ChatContainer = ({ currentChat, currentUser }) => {
 
-    const handleSendMsg = async(msg) => {
-        alert(msg);
+  
+  // state to store the messages 
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    const currentChatMessages = async () => {
+      const response = await axios.post(getAllMessagesRoute, {
+        from: currentUser._id,
+        to: currentChat._id,
+      })
+      setMessages(response.data);
     }
+    currentChatMessages();
+  }, [currentChat])
 
-    return (
-        <Container>
-            <div className='chat-header'>
-                <div className='user-details'>
-                    <div className='avatar'>
-                        <img src={`data:image/svg+xml;base64,${currentChat.avatarImage}`} alt="" />
-                    </div>
-                    <div className="username">
-                        <h3>{currentChat.username}</h3>
-                    </div>
+
+  // Sends message to the server  when the user sends a message through the ChatInput component.
+  const handleSendMsg = async (msg) => {
+    await axios.post(sendMsgRoute, {
+      from: currentUser._id,
+      to: currentChat._id,
+      message: msg
+    })
+
+  }
+
+  return (
+    <Container>
+      <div className='chat-header'>
+        <div className='user-details'>
+          <div className='avatar'>
+            <img src={`data:image/svg+xml;base64,${currentChat.avatarImage}`} alt="" />
+          </div>
+          <div className="username">
+            <h3>{currentChat.username}</h3>
+          </div>
+        </div>
+        <Logout />
+      </div>
+      <div className="chat-messages">
+        {
+          messages.map((message) => {
+            return (
+              <div className={`message ${message.fromSelf ? "sended" : "received"} `} >
+                <div className="content">
+                   <p>
+                    { message.message}
+                   </p>
                 </div>
-                <Logout />
-            </div>
-            <Messages />
-            <ChatInput handleSendMsg={handleSendMsg} />
+              </div>
+            )
+          })
+        }
+      </div>
 
-        </Container >
-    )
+      <ChatInput handleSendMsg={handleSendMsg} />
+
+    </Container >
+  )
 }
 
 const Container = styled.div`
@@ -95,7 +132,7 @@ const Container = styled.div`
         background-color: #4f04ff21;
       }
     }
-    .recieved {
+    .received {
       justify-content: flex-start;
       .content {
         background-color: #9900ff20;
