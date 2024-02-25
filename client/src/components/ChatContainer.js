@@ -23,7 +23,7 @@ const ChatContainer = ({ currentChat, currentUser }) => {
   }, [currentChat])
 
 
-  // Sends message to the server  when the user sends a message through the ChatInput component.
+  // Sends message to the server when the user sends a message through the ChatInput component.
   const handleSendMsg = async (msg) => {
     await axios.post(sendMsgRoute, {
       from: currentUser._id,
