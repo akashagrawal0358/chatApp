@@ -4,12 +4,16 @@ import axios from "axios";
 import Logout from "./Logout";
 import ChatInput from "./ChatInput";
 import { getAllMessagesRoute, sendMsgRoute } from "../utils/APIRoutes";
+import { v4 as uuidv4 } from "uuid";
 
-const ChatContainer = ({ currentChat, currentUser }) => {
 
-  
+const ChatContainer = ({ currentChat, currentUser, socket }) => {
+
+  const scrollRef = useRef();
+
   // state to store the messages 
   const [messages, setMessages] = useState([]);
+  const [arrivalMessage, setArrivalMessage] = useState(null);
 
   useEffect(() => {
     const currentChatMessages = async () => {
@@ -20,6 +24,7 @@ const ChatContainer = ({ currentChat, currentUser }) => {
       setMessages(response.data);
     }
     currentChatMessages();
+
   }, [currentChat])
 
 
@@ -29,9 +34,40 @@ const ChatContainer = ({ currentChat, currentUser }) => {
       from: currentUser._id,
       to: currentChat._id,
       message: msg
-    })
+    });
 
-  }
+    socket.current.emit("send-msg", {
+      to: currentChat._id,
+      from: currentUser._id,
+      msg,
+    });
+
+    const msgs = [...messages];
+    msgs.push({ fromSelf: true, message: msg });
+    setMessages(msgs);
+  };
+
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.on("msg-receive", (msg) => {
+        setArrivalMessage({ fromSelf: false, message: msg });
+      });
+    }
+  }, []);
+
+
+  // updates the messages state by appending the new message to the existing messages array.
+  useEffect(() => {
+    arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage]);
+
+
+  // scrolls to the latest message
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
 
   return (
     <Container>
@@ -50,11 +86,13 @@ const ChatContainer = ({ currentChat, currentUser }) => {
         {
           messages.map((message) => {
             return (
-              <div className={`message ${message.fromSelf ? "sended" : "received"} `} >
-                <div className="content">
-                   <p>
-                    { message.message}
-                   </p>
+              <div ref={scrollRef} key={uuidv4()}>
+                <div className={`message ${message.fromSelf ? "sended" : "received"} `} >
+                  <div className="content">
+                    <p>
+                      {message.message}
+                    </p>
+                  </div>
                 </div>
               </div>
             )
